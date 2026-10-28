@@ -6,11 +6,11 @@ This is the living source of truth for the project's artistic intent, system rul
 
 - **Concept:** Create an original composition by studying the whole of Botticelli's *The Birth of Venus* and translating its primary forms and depth relationships into an image-derived polygon mesh.
 - **Artist intent:** Preserve more of the painting's original structure while letting viewers perceive it in a new spatial way. Tilt-responsive HSV gradients should make polygon planes read as dimensional while retaining sampled facet colors at their midpoints; shadows may use modestly increased saturation instead of relying mainly on lower brightness.
-- **Source artwork:** Sandro Botticelli, *The Birth of Venus*. The project source file is [`Original_BirthofVenus.jpg`](Original_BirthofVenus.jpg), 4683 × 2912 pixels (landscape). Analyze the whole painting; cropping out source regions is not part of the direction. Its fit within portrait outputs remains to be decided.
+- **Source artwork:** Sandro Botticelli, *The Birth of Venus*. The project source file is [`Original_BirthofVenus.jpg`](Original_BirthofVenus.jpg), 4683 × 2912 pixels (landscape). Analyze the whole painting; cropping out source regions is not part of the direction. The current implementation uses centered contain fitting in the portrait outputs; final visual approval remains pending.
 - **Inspiration:** Quayola's *Strata*, *Iconographies*, and *Topologies*, especially the investigation of historical imagery through computational abstraction. This project is original and does not aim to reproduce Quayola's works or claim to use his exact methods.
-- **Outputs:** A vertical 2160 × 3840 pixel screen composition and a corresponding A3 portrait (297 × 420 mm) stroke-only SVG for pen plotting.
+- **Outputs:** A vertical 2160 × 3840 screen composition, a matching full-color screen SVG with filled gradient facets, and a corresponding A3 portrait (297 × 420 mm) stroke-only SVG for pen plotting.
 - **Technology:** Browser-based HTML, Canvas, and plain JavaScript, without unnecessary dependencies or build tools.
-- **Final-submission direction:** Seed `48223` at 85% figure/background density contrast is the artist's selected composition. The reported mesh has 296 points and 564 facets. The browser opens to these settings. Final PNG/SVG generation and required screenshots remain to be completed and checked.
+- **Final-submission direction:** Seed `48223` at 85% figure/background density contrast is the artist's selected composition. The reported mesh has 296 points and 564 facets. The browser opens to these settings. The final PNG, full-color screen SVG, A3 plotter SVG, and required screenshots have not yet been generated; the artist performs final verification of every output.
 
 ## 2. Artistic Intent
 
@@ -55,7 +55,7 @@ The artist selected **option 1, image-derived triangulated topography**, and app
 2. **Not selected for the current direction — fragmented, layered image excavation:** This option would select or segment regions and separate, overlap, reveal, or obscure them. The artist is not choosing it now while animation remains undecided; the whole painting, rather than a set of fragments, is the analysis domain.
 3. **Not selected — compositional flow and contour field:** This option would derive curves from image gradients and local directions. It is set aside in favor of the polygon mesh direction.
 
-This project will not treat triangulation as a generic overlay detached from the image: the mesh should respond to the painting's detected contours, complexity, and depth relationships. The first pass combines low-level image features with hand-drawn normalized masks for the primary figure groups and shell; the system does not automatically recognize or segment those subjects. Its Delaunay edges are not constrained to follow contour paths. Sampled contour anchors influence the triangulation, while explicit source-derived contour strokes reinforce those boundaries in both outputs. The artist will assess the balance through seed and density exploration; no fixed legibility threshold is set.
+This project will not treat triangulation as a generic overlay detached from the image: the mesh should respond to the painting's detected contours, complexity, and depth relationships. The first pass combines low-level image features with hand-drawn normalized masks for the primary figure groups and shell; the system does not automatically recognize or segment those subjects. Its Delaunay edges are not constrained to follow contour paths. Sampled contour anchors influence the triangulation. Source-derived contour strokes appear only in the A3 plotter SVG; the screen preview and full-color screen SVG render filled facets without outline strokes. The artist selected seed `48223` for submission; no general legibility threshold has been set.
 
 ### Assignment reference
 
@@ -130,6 +130,7 @@ These are established implementation requirements, not artistic choices:
 
 - Portrait canvas: **2160 × 3840 pixels**, aspect ratio **9:16**.
 - Scale to fit the browser without stretching.
+- Export both a transparent PNG and a filled, gradient-shaded screen SVG at 2160 × 3840 from the same composition geometry.
 - Support color. Animation remains an eventual assignment requirement, but its behavior and implementation are deferred for now.
 - Use `requestAnimationFrame` with a 60 FPS target and display an FPS readout.
 - Display the current seed in a small HUD.
@@ -150,9 +151,10 @@ These are established implementation requirements, not artistic choices:
 - **Seed field:** enter an exact unsigned 32-bit seed (0–4,294,967,295); `R` advances to the next seed. The project opens at selected seed `48223`.
 - **Figure/background contrast:** slider from 0% (no mask-based density bias) to 100%. The previous strongest setting is now at 60%; values above 60% increase separation. Changing it retains the current seed and total point-count target.
 - **S:** save a full-resolution 2160 × 3840 PNG with transparent pixels outside the rendered composition (no white matte).
-- **P:** export the corresponding composition as an A3 SVG.
-- PNG and SVG filenames include both seed and contrast; SVG root metadata also records contrast.
-- PNG and SVG exports must correspond to the same seed and composition. The export frame/state for an animated composition is **TBD** and must be clearly defined.
+- **V:** save a full-color 2160 × 3840 SVG of the filled, gradient-shaded screen facets. It uses the same mesh and facet-gradient calculation as the Canvas renderer; it has no white background or polygon outlines.
+- **P:** export the separate A3 plotter SVG, made from colored strokes only.
+- Export filenames include both seed and contrast. The screen SVG metadata records seed, contrast, point count, and facet count; the A3 SVG records seed and contrast.
+- PNG, screen SVG, and plotter SVG must correspond to the same seed and geometry. The export frame/state for an animated composition is **TBD** and must be clearly defined.
 - Animation is required by the assignment eventually, but artistic animation and implementation are deferred while the static mesh and seed exploration are developed.
 
 ### Composition and Aspect Ratios
@@ -187,6 +189,7 @@ The current workspace and intended roles are:
 | `src/primary-forms.js` | Present | Editable whole-image masks for primary figures and shell, used to prioritize mesh density. |
 | `src/renderer.js` | Present | Image-sampled color facet fills, projection, source-luminance-oriented gradients with depth-responsive HSV value shifts, and transparent unused canvas. |
 | `src/svg-export.js` | Present | A3 SVG made from colored strokes for shared mesh edges and detected contour paths. |
+| `src/screen-svg-export.js` | Present | Full-color 2160 × 3840 SVG with the same filled facets and gradients as the screen renderer. |
 | `src/app.js` | Present | Exact seed input, next-seed control, figure/background contrast slider, exports, HUD, and FPS readout. |
 
 The project is a Git repository with commit history. All runnable implementation files are grouped in `src/`; JavaScript modules remain under 300 lines. The application remains dependency-free and can be opened without a build step.
@@ -204,21 +207,21 @@ The selected submission state is seed `48223`, 85% figure/background density con
 
 ## 9. Development Milestones
 
-- [ ] **M1 — Scaffold:** Browser canvas, seeded generation, HUD, and matching PNG/SVG exports.
+- [ ] **M1 — Scaffold:** Browser canvas, seeded generation, HUD, and corresponding PNG, full-color screen SVG, and A3 plotter SVG exports.
 - [ ] **M2 — Generative rules:** Define and implement the artist-approved, image-derived transformation system.
 - [ ] **M3 — Screen:** Refine color, motion, visual hierarchy, and 4K performance.
 - [ ] **M4 — Paper:** Adapt the composition to A3 stroke-only SVG and test plotting feasibility.
 - [ ] **M5 — Final:** Evaluate outputs, curate seeds, and prepare the project presentation.
 
-The artist has curated a preferred seed for M5. Milestones remain unchecked because the final browser render, transparent PNG, matching A3 SVG, reproducibility, performance, and plotter behavior still need verification. Generate and inspect the submission files before treating the project as complete.
+The artist has visually reviewed the preferred seed and curated it for M5. The artist is responsible for verifying every generated output. Milestones remain unchecked because the final PNG, both SVG exports, and submission screenshots have not yet been generated; reproducibility, browser errors/performance, and plotter behavior also remain unverified. Assignment-required animation is deferred. Generate the submission files, have the artist review them, and resolve animation status before treating the project as complete.
 
 ### Final presentation requirements from the assignment
 
 - Submit a screenshot of `src/index.html` running with the HUD visible.
 - Submit a screenshot of the project file tree showing `src/index.html`, the completed `context.md`, and `.gitignore`.
 - Submit a screenshot of `git log --oneline` showing at least one commit.
-- Submit a 2160 × 3840 transparent PNG and its matching A3 SVG from seed `48223` at 85% contrast, with the seed in both filenames.
-- The handout's submission due date is shown as `[date]`; no due date is specified there.
+- Submit a 2160 × 3840 transparent PNG and its matching A3 plotter SVG from seed `48223` at 85% contrast, with the seed in both filenames. The full-color screen SVG is an additional vector version of the screen composition.
+- The provided assignment deck shows `[date]` as a placeholder and does not specify a concrete due date.
 
 ## 10. Open Artistic and Technical Decisions
 
@@ -230,6 +233,6 @@ Resolve these with the artist and move decisions into the relevant sections abov
 4. Does the smoothed source-luminance direction and reduced tilt-responsive shading strength create enough depth while keeping the source photo's colors faithful?
 5. How should the full landscape composition fit the 9:16 screen and A3 portrait without cropping: letterbox or reflow?
 6. What degree of recognizability should be preserved in selected seeds?
-7. What animation behavior, if any, should be developed later, and what frame/state should exports represent?
+7. The assignment requires animation, but it is deferred for now. Decide whether to implement it or confirm that a static submission is acceptable; if animated, define the export frame/state.
 8. How should the physical plotter's pen palette approximate image-derived color and the screen's continuous facet gradients?
 9. Which seed range and number of outputs are appropriate for later curation beyond the initial density study?

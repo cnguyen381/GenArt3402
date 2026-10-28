@@ -81,11 +81,22 @@
     setStatus(`Exported stroke-only A3 SVG · seed ${seed} · contrast ${Math.round(densityContrast * 100)}%`);
   }
 
+  function saveScreenSvg() {
+    if (!geometry || !image.complete || !analysis) return;
+    const svg = ns.ScreenSvgExport.create(geometry, image, analysis, seed);
+    ns.ScreenSvgExport.download(
+      svg,
+      `birth-of-venus-seed-${seed}-contrast-${Math.round(densityContrast * 100)}-screen.svg`
+    );
+    setStatus(`Saved full-color screen SVG · seed ${seed} · contrast ${Math.round(densityContrast * 100)}%`);
+  }
+
   function handleKey(event) {
     if (event.target && /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
     const key = event.key.toLowerCase();
     if (key === "r") newSeed();
     if (key === "s") savePng();
+    if (key === "v") saveScreenSvg();
     if (key === "p") saveSvg();
   }
 
@@ -104,6 +115,7 @@
   seedInput.addEventListener("change", applySeedInput);
   contrastInput.addEventListener("input", updateContrast);
   document.getElementById("save-png").addEventListener("click", savePng);
+  document.getElementById("save-screen-svg").addEventListener("click", saveScreenSvg);
   document.getElementById("save-svg").addEventListener("click", saveSvg);
   window.addEventListener("keydown", handleKey);
 

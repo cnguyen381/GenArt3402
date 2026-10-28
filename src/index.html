@@ -44,7 +44,8 @@
       <div class="controls" aria-label="Artwork controls">
         <button id="new-seed" type="button" title="Generate a new seeded mesh (R)">R · New seed</button>
         <button id="save-png" type="button" title="Save 2160 × 3840 PNG (S)">S · Save PNG</button>
-        <button id="save-svg" type="button" title="Export stroke-only A3 SVG (P)">P · Export A3 SVG</button>
+        <button id="save-screen-svg" type="button" title="Save full-color 2160 × 3840 SVG (V)">V · Screen SVG</button>
+        <button id="save-svg" type="button" title="Export stroke-only A3 plotter SVG (P)">P · A3 Plotter SVG</button>
         <label class="control-field" for="seed-input">Seed
           <input id="seed-input" type="number" min="0" max="4294967295" step="1" value="48223" title="Enter an exact seed from 0 to 4294967295">
         </label>
@@ -72,6 +73,7 @@
   <script defer src="geometry.js"></script>
   <script defer src="renderer.js"></script>
   <script defer src="svg-export.js"></script>
+  <script defer src="screen-svg-export.js"></script>
   <script defer src="app.js"></script>
 </body>
 </html>

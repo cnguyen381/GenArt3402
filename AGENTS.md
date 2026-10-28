@@ -34,6 +34,7 @@ quayola-generative-art/
 │   ├── index.html                # Browser entry point and canvas
 │   ├── geometry.js               # Image analysis / geometric system
 │   ├── renderer.js               # Screen and PNG renderer
+│   ├── screen-svg-export.js      # Full-color screen SVG
 │   ├── svg-export.js             # Stroke-only A3 output
 │   └── ...                       # Supporting JavaScript modules
 └── exports/                      # Generated PNGs and SVGs; gitignored
@@ -47,7 +48,7 @@ Keep runnable implementation files in `src/`. Begin with a self-contained `src/i
 - **Shared geometry:** generate one composition model, then render it to screen/PNG and SVG. Do not create two unrelated drawing algorithms.
 - **Normalized coordinates:** express composition in 0–1 space; adapt deliberately to the different screen and paper aspect ratios. Document whether the artwork crops, letterboxes, or reflows.
 - **Deterministic seeds:** all randomness must come from one seeded random-number generator. The same seed **and the same inputs/parameters** must reproduce the same geometry. Do not use unseeded `Math.random()` for artwork generation.
-- **Exports:** `S` saves a 2160 × 3840 PNG; `P` saves a corresponding A3 SVG; `R` generates a new seed. Show the current seed in a small HUD.
+- **Exports:** `S` saves a 2160 × 3840 PNG; `P` saves a corresponding stroke-only A3 SVG; the app also offers `V` for a full-color 2160 × 3840 screen SVG; `R` generates a new seed. Show the current seed in a small HUD.
 - **Animation:** use `requestAnimationFrame` with a target of 60 FPS and an FPS readout. Animated states should be reproducible given a seed and a specified time/frame; exporting should use a clearly defined frame or state.
 - **Plotter feasibility:** SVG should have valid vector paths and practical line density. Consider plotting time, overlapping strokes, and unnecessary pen travel.
 

@@ -90,8 +90,8 @@
     return { x: nx, y: ny, z: nz };
   }
 
-  function shadeTriangle(ctx, triangle, frame, analysis) {
-    const target = [triangle.a, triangle.b, triangle.c].map((v) => v.projected);
+  function facetGradient(triangle, frame, analysis) {
+    const target = [triangle.a, triangle.b, triangle.c].map((vertex) => project(vertex, frame));
     const center = {
       x: (target[0].x + target[1].x + target[2].x) / 3,
       y: (target[0].y + target[1].y + target[2].y) / 3
@@ -125,20 +125,30 @@
     );
     const minimum = Math.min(...projections), maximum = Math.max(...projections);
     const centerStop = maximum === minimum ? 0.5 : maximum / (maximum - minimum);
+    return {
+      points: target,
+      start: { x: center.x + directionX * maximum, y: center.y + directionY * maximum },
+      end: { x: center.x + directionX * minimum, y: center.y + directionY * minimum },
+      centerStop,
+      highlight: hsvToRgb(hue, saturation, highlightValue),
+      midpoint: triangle.color,
+      shadow: colorAtValue(triangle.color, shadowValue, shadowSaturation)
+    };
+  }
+
+  function shadeTriangle(ctx, triangle, frame, analysis) {
+    const facet = facetGradient(triangle, frame, analysis);
     const gradient = ctx.createLinearGradient(
-      center.x + directionX * maximum, center.y + directionY * maximum,
-      center.x + directionX * minimum, center.y + directionY * minimum
+      facet.start.x, facet.start.y, facet.end.x, facet.end.y
     );
-    gradient.addColorStop(0, ns.ImageAnalysis.toCss(hsvToRgb(hue, saturation, highlightValue)));
-    gradient.addColorStop(centerStop, ns.ImageAnalysis.toCss(triangle.color));
-    gradient.addColorStop(1, ns.ImageAnalysis.toCss(
-      colorAtValue(triangle.color, shadowValue, shadowSaturation)
-    ));
+    gradient.addColorStop(0, ns.ImageAnalysis.toCss(facet.highlight));
+    gradient.addColorStop(facet.centerStop, ns.ImageAnalysis.toCss(facet.midpoint));
+    gradient.addColorStop(1, ns.ImageAnalysis.toCss(facet.shadow));
     ctx.save();
-    trianglePath(ctx, target);
+    trianglePath(ctx, facet.points);
     ctx.clip();
     ctx.fillStyle = gradient;
-    trianglePath(ctx, target);
+    trianglePath(ctx, facet.points);
     ctx.fill();
     ctx.restore();
   }
@@ -154,5 +164,5 @@
     return frame;
   }
 
-  ns.Renderer = { containFrame, project, render };
+  ns.Renderer = { containFrame, project, facetGradient, render };
 })(window.VenusArt = window.VenusArt || {});
