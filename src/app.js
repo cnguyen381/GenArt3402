@@ -10,15 +10,63 @@
   const fpsReadout = document.getElementById("fps-readout");
   const contrastInput = document.getElementById("contrast-input");
   const contrastReadout = document.getElementById("contrast-readout");
+  const sourceImageInput = document.getElementById("source-image-input");
   let seed = 48223;
   let densityContrast = Number(contrastInput.value) / 100;
   let analysis = null;
   let geometry = null;
   let frameCount = 0;
   let previousFpsTime = 0;
+  let sourceWasSelected = false;
 
   function setStatus(message) {
     status.textContent = message;
+  }
+
+  function localServerMessage() {
+    return "Choose Original_BirthofVenus.jpg above, or run `python3 -m http.server 8000` from the project folder and open http://localhost:8000/src/.";
+  }
+
+  function loadSourceImage(source) {
+    if (image.src === source && image.complete && analysis) {
+      renderCurrent();
+      return;
+    }
+    analysis = null;
+    geometry = null;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    meshReadout.textContent = "Mesh: —";
+    setStatus("Loading source image…");
+    image.src = source;
+  }
+
+  function chooseSourceImage() {
+    sourceImageInput.click();
+  }
+
+  function loadChosenSourceImage() {
+    const file = sourceImageInput.files && sourceImageInput.files[0];
+    sourceImageInput.value = "";
+    if (!file) return;
+    if (!/^image\/(jpeg|png)$/.test(file.type) && !/\.(jpe?g|png)$/i.test(file.name)) {
+      setStatus("Choose the provided Original_BirthofVenus.jpg image.");
+      return;
+    }
+
+    const reader = new FileReader();
+    setStatus("Reading selected source image…");
+    reader.onload = function () {
+      if (typeof reader.result !== "string") {
+        setStatus("Could not read the selected image. Please choose Original_BirthofVenus.jpg again.");
+        return;
+      }
+      sourceWasSelected = true;
+      loadSourceImage(reader.result);
+    };
+    reader.onerror = function () {
+      setStatus("Could not read the selected image. Please choose Original_BirthofVenus.jpg again.");
+    };
+    reader.readAsDataURL(file);
   }
 
   function updateReadouts() {
@@ -59,6 +107,10 @@
   }
 
   function savePng() {
+    if (!geometry) {
+      setStatus("Choose and load the source image before exporting.");
+      return;
+    }
     canvas.toBlob((blob) => {
       if (!blob) {
         setStatus("PNG export failed. Try opening the project through a local browser server.");
@@ -175,11 +227,22 @@
       requestAnimationFrame(updateFps);
     } catch (error) {
       console.error(error);
-      setStatus(`Could not analyze source image: ${error.message}`);
+      setStatus(window.location.protocol === "file:" && !sourceWasSelected
+        ? localServerMessage()
+        : `Could not analyze source image: ${error.message}`);
     }
   };
   image.onerror = function () {
-    setStatus("Could not load Original_BirthofVenus.jpg from this folder.");
+    setStatus(window.location.protocol === "file:" && !sourceWasSelected
+      ? localServerMessage()
+      : "Could not load the selected source image. Choose Original_BirthofVenus.jpg from the project files.");
   };
-  image.src = "../Original_BirthofVenus.jpg";
+  document.getElementById("choose-source-image").addEventListener("click", chooseSourceImage);
+  sourceImageInput.addEventListener("change", loadChosenSourceImage);
+
+  if (window.location.protocol === "file:") {
+    setStatus(localServerMessage());
+  } else {
+    image.src = "../Original_BirthofVenus.jpg";
+  }
 })(window.VenusArt);

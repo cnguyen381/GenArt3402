@@ -13,6 +13,7 @@
     .title { min-width: 12rem; }
     h1 { margin: 0; font-size: 1rem; font-weight: 650; }
     .subtitle { margin-top: .2rem; color: #64675f; font-size: .76rem; }
+    .source-note { margin-top: .35rem; max-width: 34rem; color: #66562f; font-size: .68rem; line-height: 1.35; }
     .controls { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .45rem; }
     button { border: 1px solid #b9bbb2; border-radius: .35rem; background: #fff; color: #252722; padding: .48rem .68rem; font: inherit; font-size: .8rem; cursor: pointer; }
     button:hover { background: #efeee8; }
@@ -40,8 +41,11 @@
       <div class="title">
         <h1>Birth of Venus · Mesh Study</h1>
         <div class="subtitle">Full painting · static study · animation deferred</div>
+        <div class="source-note" role="note">Submission note: Chrome blocks image-pixel access when this page is opened directly. Choose <code>Original_BirthofVenus.jpg</code> from the extracted ZIP, or serve the project locally.</div>
       </div>
       <div class="controls" aria-label="Artwork controls">
+        <button id="choose-source-image" type="button" title="Choose Original_BirthofVenus.jpg from the project files">Choose source image</button>
+        <input id="source-image-input" type="file" accept=".jpg,.jpeg,image/jpeg" hidden aria-label="Select Original_BirthofVenus.jpg">
         <button id="new-seed" type="button" title="Generate a new seeded mesh (R)">R · New seed</button>
         <button id="save-png" type="button" title="Save 2160 × 3840 PNG (S)">S · Save PNG</button>
         <button id="save-artwork-png" type="button" title="Save a tightly cropped PNG of the artwork with a transparent background">Artwork · Transparent PNG</button>

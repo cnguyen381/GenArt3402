@@ -42,6 +42,8 @@ quayola-generative-art/
 
 Keep runnable implementation files in `src/`. Begin with a self-contained `src/index.html`; separate concerns into JavaScript files as complexity warrants (around 300 lines of code is a useful guideline). Keep geometry generation separate from presentation and exporting, regardless of the number of files. Do not introduce frameworks, package managers, build steps, or CDN dependencies without explicit approval.
 
+In Chrome, either serve the project over local HTTP or open `src/index.html` directly and use its source-image picker. Chrome blocks canvas pixel analysis of sibling images opened through `file://`; the picker must read the user-selected source through `FileReader` as a data URL. To serve locally and auto-load the included image, run `python3 -m http.server 8000` from the project root and open `http://localhost:8000/src/`.
+
 ## Assignment requirements — preserve these throughout development
 - **Screen:** portrait 2160 × 3840 canvas (9:16), scaled in the browser without stretching.
 - **Paper:** A3 portrait SVG, 297 × 420 mm, made of **strokes/paths only**; no fills or embedded raster images in the plotter export.
