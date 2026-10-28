@@ -74,23 +74,23 @@ Confirmed artistic rules are recorded below; items marked TBD remain open. Do no
 - **Image properties:** primary forms, figures, and structures; source-derived color; and perceived foreground, middle-ground, and background relationships.
 - **Current image analysis:** source is reduced to 720 pixels wide. A grayscale Sobel response is thinned with non-maximum suppression; hysteresis links weak edge pixels to strong ones into contour chains. A local importance field combines edge density and grayscale contrast. This detects visual boundaries and complexity, not semantic figures by itself.
 - **Primary-form density guides:** four editable normalized polygons cover the left figure group, Venus, the shell, and the right figure group with its windblown mantle. These hand-authored implementation masks explicitly distinguish subject masses from most background for point sampling; they are coarse guides rather than automatic segmentation and need visual review.
-- **Current contour use:** contour chains are ranked by length and edge strength, simplified, and sampled as mesh vertices. Up to 110 selected paths are also drawn as source-colored strokes over the triangulation in both outputs. This reinforces detected boundaries and folds; the paths are not constrained edges of the Delaunay triangulation.
+- **Current contour use:** contour chains are ranked by length and edge strength, simplified, and sampled as mesh vertices. The geometry retains source-colored contour strokes only when at least 45% of their length falls within primary-form masks and less than 35% follows the image border. This suppresses the photographed frame and much unrelated background texture while reinforcing figure and drapery contours. The paths are not constrained edges of the Delaunay triangulation.
 - **Current depth guides:** editable, hand-authored coarse polygons approximate the foreground figures/shell and middle-ground trees in normalized source coordinates; unmarked image regions are treated as background. These first-pass boundaries are provisional and need visual review.
 - **Final feature detection, contour thresholds, point sampling, and depth-zone boundaries:** TBD after visual review. The current feature detector may miss soft boundaries or follow texture that is not a meaningful form.
 
 ### Geometric Transformation
 
 - **Geometric forms and structures:** a Delaunay triangulated polygon mesh spans the full composition. The first pass combines a jittered 8 × 5 scaffold for broad coverage, sampled contour anchors, and seeded adaptive points. Four coarse primary-form masks prioritize points inside the left figure group, Venus, shell, and right figure/mantle group. Contour anchors inside those masks are preferred; anchors outside them are capped at 10% of the contour-anchor budget to keep background structure while emphasizing the subjects. The image-derived importance field still adds local detail, with a strongly reduced background weight. The local Bowyer–Watson routine triangulates the points. Detected contour paths are stored in the same composition model and drawn with the mesh; they are not enforced as triangle edges. This is our implementation choice, not a claim about Quayola's software.
-- **Density:** the seed currently selects a target of 280–480 vertices. Random candidates inside primary-form masks use a priority floor of 0.94; background candidates use 0.16 × local importance. Point acceptance uses `0.04 + 0.96 × priority^0.82`, and minimum spacing uses `baseSpacing × (1.62 − 1.16 × priority)`. These settings are intended to create a much stronger density difference between masked figures/shell and the background, while the sparse scaffold retains broad mesh coverage. The HUD reports the percentage of vertices within form masks. Actual counts may fall below target if spacing rejects candidates. These are initial exploration bounds, not final artist-selected ranges.
+- **Density:** the seed selects a target of 280–480 vertices. A separate 0–100 figure/background contrast control interpolates between neutral image-detail sampling and the strongest current subject bias. At 100%, candidates inside primary-form masks use a priority floor of 0.94; background candidates use 0.16 × local importance; minimum spacing uses `baseSpacing × (1.62 − 1.16 × priority)`; and background contour anchors are capped at 10% of their budget. At 0%, the masks do not bias sampling, all sampled non-border contour anchors may be used, and minimum spacing uses `baseSpacing × (1.38 − 0.95 × detail)`. The HUD reports the percentage of vertices within form masks. Contrast changes do not alter the seed or target vertex count; actual counts may fall below target if spacing rejects candidates.
 - **Depth interpretation:** polygon plane angle relative to the flat image should communicate perceived depth: people and shell foreground, trees middle ground, ocean and sky background. The current guides assign normalized depth values 0.88, 0.48, and 0.12, respectively. The prototype projects depth by small horizontal and vertical offsets and shades from the resulting face normal. Masks, depth values, projection, and angle range remain provisional.
-- **Color and facet shading:** screen facets map their corresponding source-image triangles onto projected triangles, preserving the source's local color and detail. A subtle white-to-dark gradient is clipped within each facet and varies with face tilt. Current shading values are initial implementation settings; lighting direction and strength remain open for visual review. Do not introduce an unrelated palette.
+- **Color and facet shading:** the screen does not display the source raster beneath the mesh. Each facet is filled with the average of 16 source-color samples distributed across that triangle, then receives a subtle white-to-dark gradient clipped within the facet and driven by its face tilt. The polygon strokes use image-derived colors. This keeps the palette tied to the painting while translating its surface into discrete color planes. Gradient strength and source-color sampling remain open for visual review.
 - **Rules governing abstraction and recognizability:** the artist will judge this through seed exploration; there is no requirement that every output remain legible as the original scene.
 - **Composition and distortion constraints:** analyze the whole painting. The current renderer uses a centered, no-crop contain fit with a white surround and a 5% safety margin for projection on both screen and A3; this is a reversible implementation default, not a final layout decision. Reflow remains an option for later artist review.
 
 ### Randomness
 
-- **Parameters controlled by randomness:** target vertex count (currently 280–480), slight scaffold jitter, and candidate point positions currently vary through one seeded RNG. Contour sampling budget follows the target vertex count; contour locations and image-derived importance are fixed for the source image.
-- **Current density range:** 280–480 target vertices. The final range and whether density should be a direct comparison control or vary with seed remain TBD. Actual vertex count may be lower than target when adaptive spacing rejects candidates.
+- **Parameters controlled by randomness:** target vertex count (currently 280–480), slight scaffold jitter, and candidate point positions vary through one seeded RNG. Contour sampling budget follows the target vertex count; contour locations and image-derived importance are fixed for the source image. Figure/background contrast is a separate user-controlled parameter, not randomized by the seed.
+- **Current point-count range:** the seed selects a target of 280–480 vertices; the final range remains TBD. The separate figure/background contrast slider does not change this target.
 - **Elements that remain consistent between variations:** the entire source painting, triangulated-mesh approach, source-derived color, and intended foreground/middle-ground/background ordering.
 
 ### Animation
@@ -147,8 +147,11 @@ These are established implementation requirements, not artistic choices:
 
 - Use deterministic seeded randomness; the same seed and parameters reproduce the same geometry.
 - **R:** generate a new seed and composition.
+- **Seed field:** enter an exact unsigned 32-bit seed (0–4,294,967,295); `R` advances to the next seed.
+- **Figure/background contrast:** slider from 0% (no mask-based density bias) to 100% (strongest current mask bias). Changing it retains the current seed and total point-count target.
 - **S:** save a full-resolution 2160 × 3840 PNG.
 - **P:** export the corresponding composition as an A3 SVG.
+- PNG and SVG filenames include both seed and contrast; SVG root metadata also records contrast.
 - PNG and SVG exports must correspond to the same seed and composition. The export frame/state for an animated composition is **TBD** and must be clearly defined.
 - Animation is required by the assignment eventually, but artistic animation and implementation are deferred while the static mesh and seed exploration are developed.
 
@@ -182,9 +185,9 @@ The current workspace and intended roles are:
 | `geometry.js` | Present | Seeded scaffold, form-weighted adaptive sampling, contour anchors, triangulation input, and shared mesh geometry. |
 | `contours.js` | Present | Hysteresis contour tracing, path simplification, and capped contour anchor sampling. |
 | `primary-forms.js` | Present | Editable whole-image masks for primary figures and shell, used to prioritize mesh density. |
-| `renderer.js` | Present | Canvas texture mapping, projection, facet shading, and mesh strokes. |
+| `renderer.js` | Present | Image-sampled color facet fills, projection, facet shading, and mesh strokes. |
 | `svg-export.js` | Present | A3 SVG made from colored strokes for shared mesh edges and detected contour paths. |
-| `app.js` | Present | Seed controls, exports, HUD, and FPS readout. |
+| `app.js` | Present | Exact seed input, next-seed control, figure/background contrast slider, exports, HUD, and FPS readout. |
 
 The workspace is not currently initialized as a Git repository. The current JavaScript files are all under 300 lines. The application remains dependency-free and can be opened without a build step.
 
@@ -200,7 +203,7 @@ The scaffold starts with seed `48213` as a reproducible preview default. It has 
 
 ### Seed exploration guidance (proposal)
 
-A seed reproduces a whole composition; it is not one seed per variable. To understand mesh density, compare density settings while holding other inputs steady, then compare multiple seeds at each setting. A manageable first study would be three density levels (sparse, medium, dense) crossed with three seed values (nine compositions). Reuse the same three seed values at each level where possible. Because different point counts can change how a random sequence is consumed, the implementation specification should make comparisons stable (for example, by deriving a fixed candidate point sequence from the seed and changing how many points are used). These are suggested study counts, not generated or evaluated seeds. After the artist chooses a useful density range, the seed can vary density within that range if desired.
+A seed reproduces a whole composition; it is not one seed per variable. To study figure/background contrast, hold the seed fixed and compare slider settings, then compare multiple seeds at each setting. A manageable first study would be three contrast levels (for example, 25%, 60%, and 100%) crossed with three seed values (nine compositions), reusing the same seeds at each level. The seed also selects overall target point count, so the same seed keeps that target consistent across contrast settings. These are suggested comparisons, not generated or evaluated compositions.
 
 ## 9. Development Milestones
 
@@ -224,8 +227,8 @@ Initial M1/M2 code is present, but the browser render, exports, reproducibility,
 
 Resolve these with the artist and move decisions into the relevant sections above:
 
-1. Do the hand-authored primary-form masks and adaptive point distribution distinguish figures/shell from background clearly enough, or do the mask boundaries and weights need revision? The masks are explicit guides; the edge detector itself does not semantically identify figures.
-2. What mesh-density range produces the desired variation, and should density be a direct parameter during comparison before being allowed to vary with seed?
+1. Do the hand-authored primary-form masks and adjustable density contrast distinguish figures/shell from background clearly enough, or do the mask boundaries and weights need revision? The masks are explicit guides; the edge detector itself does not semantically identify figures.
+2. What overall target vertex-count range produces the desired variation? The figure/background density contrast is now a separate direct control.
 3. How should the foreground/middle-ground/background relationships be encoded as polygon angles and projection?
 4. What shading direction and strength create depth while keeping the source photo's colors faithful?
 5. How should the full landscape composition fit the 9:16 screen and A3 portrait without cropping: letterbox or reflow?

@@ -5,10 +5,13 @@
   const ctx = canvas.getContext("2d");
   const image = new Image();
   const status = document.getElementById("status");
-  const seedReadout = document.getElementById("seed-readout");
+  const seedInput = document.getElementById("seed-input");
   const meshReadout = document.getElementById("mesh-readout");
   const fpsReadout = document.getElementById("fps-readout");
+  const contrastInput = document.getElementById("contrast-input");
+  const contrastReadout = document.getElementById("contrast-readout");
   let seed = 48213;
+  let densityContrast = Number(contrastInput.value) / 100;
   let analysis = null;
   let geometry = null;
   let frameCount = 0;
@@ -19,7 +22,8 @@
   }
 
   function updateReadouts() {
-    seedReadout.textContent = `Seed: ${seed}`;
+    seedInput.value = String(seed);
+    contrastReadout.textContent = `${Math.round(densityContrast * 100)}%`;
     if (geometry) {
       const formShare = Math.round(geometry.primaryFormVertexCount / geometry.vertices.length * 100);
       meshReadout.textContent = `Mesh: ${geometry.vertices.length} points · ${geometry.triangles.length} facets · ${formShare}% in form zones`;
@@ -28,14 +32,29 @@
 
   function renderCurrent() {
     if (!analysis || !image.complete) return;
-    geometry = ns.Geometry.create(analysis, seed);
+    geometry = ns.Geometry.create(analysis, seed, densityContrast);
     ns.Renderer.render(ctx, canvas, image, geometry);
     updateReadouts();
-    setStatus(`Whole image · ${geometry.contours.length} source contours · figure-guided density · static mesh`);
+    setStatus(`Whole image · figure contours · density contrast ${Math.round(densityContrast * 100)}%`);
   }
 
   function newSeed() {
     seed = ns.RNG.nextSeed(seed);
+    renderCurrent();
+  }
+
+  function applySeedInput() {
+    const value = Number(seedInput.value);
+    if (!seedInput.value.trim() || !Number.isInteger(value) || value < 0 || value > 0xFFFFFFFF) {
+      seedInput.value = String(seed);
+      return;
+    }
+    seed = value >>> 0;
+    renderCurrent();
+  }
+
+  function updateContrast() {
+    densityContrast = Number(contrastInput.value) / 100;
     renderCurrent();
   }
 
@@ -48,18 +67,18 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `birth-of-venus-seed-${seed}.png`;
+      link.download = `birth-of-venus-seed-${seed}-contrast-${Math.round(densityContrast * 100)}.png`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setStatus(`Saved PNG · seed ${seed}`);
+      setStatus(`Saved PNG · seed ${seed} · contrast ${Math.round(densityContrast * 100)}%`);
     }, "image/png");
   }
 
   function saveSvg() {
     if (!geometry || !image.complete) return;
     const svg = ns.SvgExport.create(geometry, image, seed);
-    ns.SvgExport.download(svg, `birth-of-venus-seed-${seed}-A3.svg`);
-    setStatus(`Exported stroke-only A3 SVG · seed ${seed}`);
+    ns.SvgExport.download(svg, `birth-of-venus-seed-${seed}-contrast-${Math.round(densityContrast * 100)}-A3.svg`);
+    setStatus(`Exported stroke-only A3 SVG · seed ${seed} · contrast ${Math.round(densityContrast * 100)}%`);
   }
 
   function handleKey(event) {
@@ -82,6 +101,8 @@
   }
 
   document.getElementById("new-seed").addEventListener("click", newSeed);
+  seedInput.addEventListener("change", applySeedInput);
+  contrastInput.addEventListener("input", updateContrast);
   document.getElementById("save-png").addEventListener("click", savePng);
   document.getElementById("save-svg").addEventListener("click", saveSvg);
   window.addEventListener("keydown", handleKey);

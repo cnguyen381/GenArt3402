@@ -9,7 +9,62 @@
     return `${x}:${y}`;
   }
 
-  function create(analysis, seed) {
+  function sampleTriangleColor(analysis, a, b, c) {
+    const divisions = 4;
+    const total = [0, 0, 0];
+    let count = 0;
+
+    function accumulate(weightB, weightC) {
+      const weightA = 1 - weightB - weightC;
+      const color = ns.ImageAnalysis.sampleColor(
+        analysis,
+        a.x * weightA + b.x * weightB + c.x * weightC,
+        a.y * weightA + b.y * weightB + c.y * weightC
+      );
+      for (let channel = 0; channel < 3; channel++) total[channel] += color[channel];
+      count++;
+    }
+
+    // Sample the centroid of each small triangle in a regular barycentric subdivision.
+    for (let row = 0; row < divisions; row++) {
+      for (let column = 0; column < divisions - row; column++) {
+        accumulate((column + 1 / 3) / divisions, (row + 1 / 3) / divisions);
+        if (row + column < divisions - 1) {
+          accumulate((column + 2 / 3) / divisions, (row + 2 / 3) / divisions);
+        }
+      }
+    }
+
+    return total.map((channel) => Math.round(channel / count));
+  }
+
+  function contourCoverage(path, width, height) {
+    let totalLength = 0, formLength = 0, borderLength = 0;
+    for (let i = 1; i < path.points.length; i++) {
+      const a = path.points[i - 1], b = path.points[i];
+      const length = Math.hypot((b.x - a.x) * width, (b.y - a.y) * height);
+      const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2;
+      totalLength += length;
+      if (ns.PrimaryForms.weightAt(x, y)) formLength += length;
+      if (x < 0.012 || x > 0.988 || y < 0.012 || y > 0.988) borderLength += length;
+    }
+    return {
+      formShare: totalLength ? formLength / totalLength : 0,
+      borderShare: totalLength ? borderLength / totalLength : 1
+    };
+  }
+
+  function isBorderContour(path, width, height) {
+    return contourCoverage(path, width, height).borderShare >= 0.35;
+  }
+
+  function isRelevantContour(path, width, height) {
+    const coverage = contourCoverage(path, width, height);
+    return coverage.formShare >= 0.45 && coverage.borderShare < 0.35;
+  }
+
+  function create(analysis, seed, contrast) {
+    contrast = clamp(contrast == null ? 1 : contrast, 0, 1);
     const random = ns.RNG.create(seed);
     const aspect = analysis.width / analysis.height;
     const targetVertices = 280 + Math.floor(random() * 201);
@@ -72,17 +127,21 @@
     }
 
     const contourBudget = Math.floor(targetVertices * 0.38);
+    const sourceContours = (analysis.contours || []).filter((path) =>
+      !isBorderContour(path, analysis.width, analysis.height)
+    );
     const contourCandidates = ns.Contours.sampleAnchors(
-      analysis.contours || [], contourBudget, analysis.width, analysis.height
+      sourceContours, contourBudget, analysis.width, analysis.height
     );
     const formAnchors = contourCandidates.filter((point) => ns.PrimaryForms.weightAt(point.x, point.y) > 0);
     const backgroundAnchors = contourCandidates.filter((point) => ns.PrimaryForms.weightAt(point.x, point.y) === 0);
-    const backgroundAnchorLimit = Math.floor(contourBudget * 0.10);
+    const backgroundAnchorShare = 1 - contrast * 0.90;
+    const backgroundAnchorLimit = Math.floor(contourBudget * backgroundAnchorShare);
     formAnchors.concat(backgroundAnchors.slice(0, backgroundAnchorLimit))
       .forEach((point) => addPoint(point.x, point.y));
 
-    const formPriorityFloor = 0.94;
-    const backgroundDetailWeight = 0.16;
+    const spacingBase = 1.38 + contrast * 0.24;
+    const spacingReduction = 0.95 + contrast * 0.21;
     let attempts = 0;
     const maxAttempts = targetVertices * 90;
     while (points.length < targetVertices && attempts++ < maxAttempts) {
@@ -90,18 +149,24 @@
       const detail = ns.ImageAnalysis.sampleField(analysis, "importance", x, y);
       const isPrimaryForm = ns.PrimaryForms.weightAt(x, y) > 0;
       const priority = isPrimaryForm
-        ? Math.max(formPriorityFloor, detail)
-        : detail * backgroundDetailWeight;
+        ? detail + contrast * (Math.max(0.94, detail) - detail)
+        : detail * (1 - contrast * 0.84);
       const acceptance = 0.04 + 0.96 * Math.pow(priority, 0.82);
       if (random() > acceptance) continue;
-      const spacing = baseSpacing * (1.62 - priority * 1.16);
+      const spacing = baseSpacing * (spacingBase - priority * spacingReduction);
       if (!hasNearby(x, y, spacing)) addPoint(x, y);
     }
 
     const indexTriangles = ns.Triangulation.triangulate(points);
     const triangles = indexTriangles.map((indices) => {
       const [a, b, c] = indices.map((index) => points[index]);
-      return { a, b, c, depth: (a.depth + b.depth + c.depth) / 3 };
+      return {
+        a,
+        b,
+        c,
+        color: sampleTriangleColor(analysis, a, b, c),
+        depth: (a.depth + b.depth + c.depth) / 3
+      };
     }).sort((a, b) => a.depth - b.depth);
 
     const edgeMap = new Map();
@@ -115,7 +180,9 @@
       });
     });
 
-    const contours = (analysis.contours || []).map((path) => {
+    const contours = sourceContours.filter((path) =>
+      isRelevantContour(path, analysis.width, analysis.height)
+    ).map((path) => {
       const points = path.points.map((point) => ({
         x: point.x,
         y: point.y,
@@ -132,6 +199,7 @@
 
     return {
       seed: seed >>> 0,
+      densityContrast: contrast,
       targetVertices,
       vertices: points,
       primaryFormVertexCount: points.reduce((count, point) => count + Number(point.primaryForm), 0),

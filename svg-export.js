@@ -11,6 +11,7 @@
 
   function create(geometry, image, seed) {
     const width = 297, height = 420;
+    const contrast = Math.round((geometry.densityContrast == null ? 1 : geometry.densityContrast) * 100);
     const frame = ns.Renderer.containFrame(width, height, image.naturalWidth, image.naturalHeight);
     const meshPaths = geometry.edges.map((edge) => {
       const a = ns.Renderer.project(edge.a, frame);
@@ -23,7 +24,7 @@
       return `<path d="${commands}" stroke="${hex(contour.color)}" stroke-width="0.22" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
     }).join("\n");
     const paths = `${meshPaths}\n${contourPaths}`;
-    return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="297mm" height="420mm" viewBox="0 0 297 420" data-seed="${seed}">\n${paths}\n</svg>`;
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="297mm" height="420mm" viewBox="0 0 297 420" data-seed="${seed}" data-density-contrast="${contrast}">\n${paths}\n</svg>`;
   }
 
   function download(svgText, filename) {

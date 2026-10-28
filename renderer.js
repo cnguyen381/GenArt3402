@@ -22,24 +22,6 @@
     };
   }
 
-  function affine(source, target) {
-    const x0 = source[0].x, y0 = source[0].y;
-    const x1 = source[1].x, y1 = source[1].y;
-    const x2 = source[2].x, y2 = source[2].y;
-    const X0 = target[0].x, Y0 = target[0].y;
-    const X1 = target[1].x, Y1 = target[1].y;
-    const X2 = target[2].x, Y2 = target[2].y;
-    const denominator = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1);
-    if (Math.abs(denominator) < 1e-8) return null;
-    const a = (X0 * (y1 - y2) + X1 * (y2 - y0) + X2 * (y0 - y1)) / denominator;
-    const b = (X0 * (x2 - x1) + X1 * (x0 - x2) + X2 * (x1 - x0)) / denominator;
-    const c = (X0 * (x1 * y2 - x2 * y1) + X1 * (x2 * y0 - x0 * y2) + X2 * (x0 * y1 - x1 * y0)) / denominator;
-    const d = (Y0 * (y1 - y2) + Y1 * (y2 - y0) + Y2 * (y0 - y1)) / denominator;
-    const e = (Y0 * (x2 - x1) + Y1 * (x0 - x2) + Y2 * (x1 - x0)) / denominator;
-    const f = (Y0 * (x1 * y2 - x2 * y1) + Y1 * (x2 * y0 - x0 * y2) + Y2 * (x0 * y1 - x1 * y0)) / denominator;
-    return { a, b, c, d, e, f };
-  }
-
   function trianglePath(ctx, triangle) {
     ctx.beginPath();
     ctx.moveTo(triangle[0].x, triangle[0].y);
@@ -48,19 +30,13 @@
     ctx.closePath();
   }
 
-  function drawMappedTriangle(ctx, image, triangle) {
-    const source = [triangle.a, triangle.b, triangle.c].map((v) => ({
-      x: v.x * image.naturalWidth,
-      y: v.y * image.naturalHeight
-    }));
+  function drawColorTriangle(ctx, triangle) {
     const target = [triangle.a, triangle.b, triangle.c].map((v) => v.projected);
-    const transform = affine(source, target);
-    if (!transform) return;
     ctx.save();
     trianglePath(ctx, target);
     ctx.clip();
-    ctx.transform(transform.a, transform.d, transform.b, transform.e, transform.c, transform.f);
-    ctx.drawImage(image, 0, 0);
+    ctx.fillStyle = ns.ImageAnalysis.toCss(triangle.color);
+    ctx.fill();
     ctx.restore();
   }
 
@@ -113,7 +89,7 @@
     const frame = containFrame(canvas.width, canvas.height, image.naturalWidth, image.naturalHeight);
     geometry.vertices.forEach((vertex) => { vertex.projected = project(vertex, frame); });
 
-    geometry.triangles.forEach((triangle) => drawMappedTriangle(ctx, image, triangle));
+    geometry.triangles.forEach((triangle) => drawColorTriangle(ctx, triangle));
     geometry.triangles.forEach((triangle) => shadeTriangle(ctx, triangle, frame));
     ctx.save();
     ctx.lineWidth = 1.3;

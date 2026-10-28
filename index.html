@@ -18,6 +18,11 @@
     button:hover { background: #efeee8; }
     button:focus-visible { outline: 2px solid #415d70; outline-offset: 2px; }
     .readout { padding: .25rem .45rem; color: #4c504a; font-size: .75rem; white-space: nowrap; }
+    .control-field { display: inline-flex; align-items: center; gap: .35rem; color: #4c504a; font-size: .75rem; white-space: nowrap; }
+    .control-field input[type="number"] { width: 7.1rem; border: 1px solid #b9bbb2; border-radius: .25rem; padding: .28rem; font: inherit; }
+    .contrast-field { display: inline-flex; flex-direction: column; align-items: stretch; gap: .1rem; min-width: 9rem; }
+    .contrast-heading { display: flex; justify-content: space-between; gap: .5rem; }
+    .contrast-field input[type="range"] { width: 100%; margin: .1rem 0; accent-color: #415d70; }
     main { min-height: 0; display: grid; place-items: center; padding: .75rem; }
     .stage { position: relative; max-width: 100%; max-height: 100%; height: calc(100vh - 5.4rem); aspect-ratio: 9 / 16; box-shadow: 0 3px 18px #17191424; background: #fff; }
     canvas { display: block; width: 100%; height: 100%; background: #fff; }
@@ -40,7 +45,13 @@
         <button id="new-seed" type="button" title="Generate a new seeded mesh (R)">R · New seed</button>
         <button id="save-png" type="button" title="Save 2160 × 3840 PNG (S)">S · Save PNG</button>
         <button id="save-svg" type="button" title="Export stroke-only A3 SVG (P)">P · Export A3 SVG</button>
-        <span class="readout" id="seed-readout">Seed: —</span>
+        <label class="control-field" for="seed-input">Seed
+          <input id="seed-input" type="number" min="0" max="4294967295" step="1" value="48213" title="Enter an exact seed from 0 to 4294967295">
+        </label>
+        <label class="control-field contrast-field" for="contrast-input">
+          <span class="contrast-heading"><span>Figure/background contrast</span><output id="contrast-readout">100%</output></span>
+          <input id="contrast-input" type="range" min="0" max="100" step="1" value="100" aria-label="Figure/background density contrast">
+        </label>
         <span class="readout" id="mesh-readout">Mesh: —</span>
         <span class="readout" id="fps-readout">FPS: —</span>
       </div>
