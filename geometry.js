@@ -25,11 +25,13 @@
       const key = `${Math.round(x * 10000)}:${Math.round(y * 10000)}`;
       if (seen.has(key) || points.length >= targetVertices) return false;
       seen.add(key);
+      const primaryForm = ns.PrimaryForms.weightAt(x, y) > 0;
       const point = {
         x,
         y,
         depth: ns.DepthZones.depthAt(x, y),
-        importance: ns.ImageAnalysis.sampleField(analysis, "importance", x, y)
+        importance: ns.ImageAnalysis.sampleField(analysis, "importance", x, y),
+        primaryForm
       };
       points.push(point);
       const gx = Math.floor(x * aspect / cellSize);
@@ -70,19 +72,29 @@
     }
 
     const contourBudget = Math.floor(targetVertices * 0.38);
-    const contourAnchors = ns.Contours.sampleAnchors(
+    const contourCandidates = ns.Contours.sampleAnchors(
       analysis.contours || [], contourBudget, analysis.width, analysis.height
     );
-    contourAnchors.forEach((point) => addPoint(point.x, point.y));
+    const formAnchors = contourCandidates.filter((point) => ns.PrimaryForms.weightAt(point.x, point.y) > 0);
+    const backgroundAnchors = contourCandidates.filter((point) => ns.PrimaryForms.weightAt(point.x, point.y) === 0);
+    const backgroundAnchorLimit = Math.floor(contourBudget * 0.10);
+    formAnchors.concat(backgroundAnchors.slice(0, backgroundAnchorLimit))
+      .forEach((point) => addPoint(point.x, point.y));
 
+    const formPriorityFloor = 0.94;
+    const backgroundDetailWeight = 0.16;
     let attempts = 0;
     const maxAttempts = targetVertices * 90;
     while (points.length < targetVertices && attempts++ < maxAttempts) {
       const x = random(), y = random();
-      const importance = ns.ImageAnalysis.sampleField(analysis, "importance", x, y);
-      const acceptance = 0.06 + 0.94 * Math.pow(importance, 0.72);
+      const detail = ns.ImageAnalysis.sampleField(analysis, "importance", x, y);
+      const isPrimaryForm = ns.PrimaryForms.weightAt(x, y) > 0;
+      const priority = isPrimaryForm
+        ? Math.max(formPriorityFloor, detail)
+        : detail * backgroundDetailWeight;
+      const acceptance = 0.04 + 0.96 * Math.pow(priority, 0.82);
       if (random() > acceptance) continue;
-      const spacing = baseSpacing * (1.38 - importance * 0.95);
+      const spacing = baseSpacing * (1.62 - priority * 1.16);
       if (!hasNearby(x, y, spacing)) addPoint(x, y);
     }
 
@@ -122,6 +134,7 @@
       seed: seed >>> 0,
       targetVertices,
       vertices: points,
+      primaryFormVertexCount: points.reduce((count, point) => count + Number(point.primaryForm), 0),
       triangles,
       edges: Array.from(edgeMap.values()),
       contours

@@ -21,7 +21,8 @@
   function updateReadouts() {
     seedReadout.textContent = `Seed: ${seed}`;
     if (geometry) {
-      meshReadout.textContent = `Mesh: ${geometry.vertices.length} points · ${geometry.triangles.length} facets`;
+      const formShare = Math.round(geometry.primaryFormVertexCount / geometry.vertices.length * 100);
+      meshReadout.textContent = `Mesh: ${geometry.vertices.length} points · ${geometry.triangles.length} facets · ${formShare}% in form zones`;
     }
   }
 
@@ -30,7 +31,7 @@
     geometry = ns.Geometry.create(analysis, seed);
     ns.Renderer.render(ctx, canvas, image, geometry);
     updateReadouts();
-    setStatus(`Whole image · ${geometry.contours.length} source contours · adaptive static mesh`);
+    setStatus(`Whole image · ${geometry.contours.length} source contours · figure-guided density · static mesh`);
   }
 
   function newSeed() {
