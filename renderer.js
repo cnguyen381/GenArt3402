@@ -58,8 +58,9 @@
     return rgb.map((channel) => Math.round((channel + match) * 255));
   }
 
-  function colorAtValue(rgb, value) {
-    const [hue, saturation] = rgbToHsv(rgb);
+  function colorAtValue(rgb, value, saturationOverride) {
+    const [hue, sampledSaturation] = rgbToHsv(rgb);
+    const saturation = saturationOverride == null ? sampledSaturation : saturationOverride;
     return hsvToRgb(hue, saturation, Math.max(0, Math.min(1, value)));
   }
 
@@ -99,7 +100,8 @@
     const tilt = Math.min(1, Math.hypot(normal.x, normal.y) * 3.6);
     const [hue, saturation, value] = rgbToHsv(triangle.color);
     const highlightValue = value + (1 - value) * (0.25 + tilt * 0.20);
-    const shadowValue = value * (1 - (0.20 + tilt * 0.20));
+    const shadowValue = value * (1 - (0.15 + tilt * 0.15));
+    const shadowSaturation = Math.min(1, saturation * (1.20 + tilt * 0.15));
     const sourceSamples = [triangle.a, triangle.b, triangle.c, {
       x: (triangle.a.x + triangle.b.x + triangle.c.x) / 3,
       y: (triangle.a.y + triangle.b.y + triangle.c.y) / 3
@@ -129,7 +131,9 @@
     );
     gradient.addColorStop(0, ns.ImageAnalysis.toCss(hsvToRgb(hue, saturation, highlightValue)));
     gradient.addColorStop(centerStop, ns.ImageAnalysis.toCss(triangle.color));
-    gradient.addColorStop(1, ns.ImageAnalysis.toCss(colorAtValue(triangle.color, shadowValue)));
+    gradient.addColorStop(1, ns.ImageAnalysis.toCss(
+      colorAtValue(triangle.color, shadowValue, shadowSaturation)
+    ));
     ctx.save();
     trianglePath(ctx, target);
     ctx.clip();
