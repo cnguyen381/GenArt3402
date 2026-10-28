@@ -84,6 +84,23 @@
     }
 
     const grayIntegral = buildIntegral(gray, width, height);
+    const lightingRadius = Math.max(4, Math.round(width / 60));
+    const smoothedGray = new Float32Array(size);
+    const lightingX = new Float32Array(size);
+    const lightingY = new Float32Array(size);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        smoothedGray[y * width + x] = boxMean(grayIntegral, width, height, x, y, lightingRadius);
+      }
+    }
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const i = y * width + x;
+        lightingX[i] = (smoothedGray[i + 1] - smoothedGray[i - 1]) * 0.5;
+        lightingY[i] = (smoothedGray[i + width] - smoothedGray[i - width]) * 0.5;
+      }
+    }
+
     const graySquared = new Float32Array(size);
     for (let i = 0; i < size; i++) graySquared[i] = gray[i] * gray[i];
     const squareIntegral = buildIntegral(graySquared, width, height);
@@ -100,7 +117,7 @@
       }
     }
 
-    return { width, height, pixels, gray, edge, thin, importance };
+    return { width, height, pixels, gray, edge, thin, importance, lightingX, lightingY };
   }
 
   function sampleColor(data, u, v) {

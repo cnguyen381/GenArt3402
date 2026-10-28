@@ -65,6 +65,7 @@
 
   function create(analysis, seed, contrast) {
     contrast = clamp(contrast == null ? 1 : contrast, 0, 1);
+    const contrastStrength = contrast / 0.60;
     const random = ns.RNG.create(seed);
     const aspect = analysis.width / analysis.height;
     const targetVertices = 280 + Math.floor(random() * 201);
@@ -135,13 +136,13 @@
     );
     const formAnchors = contourCandidates.filter((point) => ns.PrimaryForms.weightAt(point.x, point.y) > 0);
     const backgroundAnchors = contourCandidates.filter((point) => ns.PrimaryForms.weightAt(point.x, point.y) === 0);
-    const backgroundAnchorShare = 1 - contrast * 0.90;
+    const backgroundAnchorShare = clamp(1 - contrastStrength * 0.90, 0, 1);
     const backgroundAnchorLimit = Math.floor(contourBudget * backgroundAnchorShare);
     formAnchors.concat(backgroundAnchors.slice(0, backgroundAnchorLimit))
       .forEach((point) => addPoint(point.x, point.y));
 
-    const spacingBase = 1.38 + contrast * 0.24;
-    const spacingReduction = 0.95 + contrast * 0.21;
+    const spacingBase = 1.38 + contrastStrength * 0.24;
+    const spacingReduction = 0.95 + contrastStrength * 0.21;
     let attempts = 0;
     const maxAttempts = targetVertices * 90;
     while (points.length < targetVertices && attempts++ < maxAttempts) {
@@ -149,8 +150,8 @@
       const detail = ns.ImageAnalysis.sampleField(analysis, "importance", x, y);
       const isPrimaryForm = ns.PrimaryForms.weightAt(x, y) > 0;
       const priority = isPrimaryForm
-        ? detail + contrast * (Math.max(0.94, detail) - detail)
-        : detail * (1 - contrast * 0.84);
+        ? clamp(detail + contrastStrength * (Math.max(0.94, detail) - detail), 0, 1)
+        : detail * Math.max(0, 1 - contrastStrength * 0.84);
       const acceptance = 0.04 + 0.96 * Math.pow(priority, 0.82);
       if (random() > acceptance) continue;
       const spacing = baseSpacing * (spacingBase - priority * spacingReduction);

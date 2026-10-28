@@ -33,7 +33,7 @@
   function renderCurrent() {
     if (!analysis || !image.complete) return;
     geometry = ns.Geometry.create(analysis, seed, densityContrast);
-    ns.Renderer.render(ctx, canvas, image, geometry);
+    ns.Renderer.render(ctx, canvas, image, geometry, analysis);
     updateReadouts();
     setStatus(`Whole image · figure contours · density contrast ${Math.round(densityContrast * 100)}%`);
   }
