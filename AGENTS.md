@@ -29,15 +29,17 @@ quayola-generative-art/
 ├── context.md
 ├── Quayola Research.pdf          # Reference document; keep with the project
 ├── Original_BirthofVenus.jpg     # Reference document; keep with the project
-├── index.html                    # Browser entry point and canvas
 ├── .gitignore
-├── geometry.js                   # Optional: image analysis / geometric system
-├── renderer.js                   # Optional: screen and PNG renderer
-├── svg-export.js                 # Optional: stroke-only A3 output
+├── src/                          # Runnable implementation
+│   ├── index.html                # Browser entry point and canvas
+│   ├── geometry.js               # Image analysis / geometric system
+│   ├── renderer.js               # Screen and PNG renderer
+│   ├── svg-export.js             # Stroke-only A3 output
+│   └── ...                       # Supporting JavaScript modules
 └── exports/                      # Generated PNGs and SVGs; gitignored
 ```
 
-The three `.js` files are **optional at first**. Begin with a self-contained `index.html`; separate concerns into JavaScript files when complexity makes this worthwhile (around 300 lines of code is a useful guideline). Keep geometry generation separate from presentation and exporting, regardless of the number of files. Do not introduce frameworks, package managers, build steps, or CDN dependencies without explicit approval.
+Keep runnable implementation files in `src/`. Begin with a self-contained `src/index.html`; separate concerns into JavaScript files as complexity warrants (around 300 lines of code is a useful guideline). Keep geometry generation separate from presentation and exporting, regardless of the number of files. Do not introduce frameworks, package managers, build steps, or CDN dependencies without explicit approval.
 
 ## Assignment requirements — preserve these throughout development
 - **Screen:** portrait 2160 × 3840 canvas (9:16), scaled in the browser without stretching.

@@ -10,7 +10,7 @@
   const fpsReadout = document.getElementById("fps-readout");
   const contrastInput = document.getElementById("contrast-input");
   const contrastReadout = document.getElementById("contrast-readout");
-  let seed = 48213;
+  let seed = 48223;
   let densityContrast = Number(contrastInput.value) / 100;
   let analysis = null;
   let geometry = null;
@@ -121,5 +121,5 @@
   image.onerror = function () {
     setStatus("Could not load Original_BirthofVenus.jpg from this folder.");
   };
-  image.src = "Original_BirthofVenus.jpg";
+  image.src = "../Original_BirthofVenus.jpg";
 })(window.VenusArt);

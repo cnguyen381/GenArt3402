@@ -145,8 +145,7 @@
 
   function render(ctx, canvas, image, geometry, analysis) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     const frame = containFrame(canvas.width, canvas.height, image.naturalWidth, image.naturalHeight);
     geometry.vertices.forEach((vertex) => { vertex.projected = project(vertex, frame); });
 

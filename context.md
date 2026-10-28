@@ -10,7 +10,7 @@ This is the living source of truth for the project's artistic intent, system rul
 - **Inspiration:** Quayola's *Strata*, *Iconographies*, and *Topologies*, especially the investigation of historical imagery through computational abstraction. This project is original and does not aim to reproduce Quayola's works or claim to use his exact methods.
 - **Outputs:** A vertical 2160 × 3840 pixel screen composition and a corresponding A3 portrait (297 × 420 mm) stroke-only SVG for pen plotting.
 - **Technology:** Browser-based HTML, Canvas, and plain JavaScript, without unnecessary dependencies or build tools.
-- **Still to decide:** Visual tuning of contour thresholds and density range, angle/projection mapping, shading direction and strength, output aspect adaptation, and animation. Recognizability will be assessed by the artist while exploring seeds.
+- **Final-submission direction:** Seed `48223` at 85% figure/background density contrast is the artist's selected composition. The reported mesh has 296 points and 564 facets. The browser opens to these settings. Final PNG/SVG generation and required screenshots remain to be completed and checked.
 
 ## 2. Artistic Intent
 
@@ -61,7 +61,7 @@ This project will not treat triangulation as a generic overlay detached from the
 
 The 24-page *LMC 3402 — Lab 1 Building Generative Systems with an AI Partner.pdf* establishes the output, reproducibility, workflow, and presentation expectations captured below. It emphasizes writing rules before code, reviewing plans, keeping `context.md` current, and retaining the artist's role in defining rules and curating results.
 
-The five-page `Recommended File structure.pdf` confirms the minimal, self-contained `index.html` starting point; optional JS modules after about 300 lines; one shared geometry model for Canvas and SVG; and a seed log kept in `context.md`. These recommendations agree with the assignment and existing `AGENTS.md`.
+The five-page `Recommended File structure.pdf` recommends a minimal browser entry point, optional JS modules as code grows, one shared geometry model for Canvas and SVG, and a seed log in `context.md`. For this project, the artist chose to group all runnable implementation files in `src/`, keeping research, source artwork, and project documentation at the root.
 
 ## 4. System Rules
 
@@ -85,7 +85,7 @@ Confirmed artistic rules are recorded below; items marked TBD remain open. Do no
 - **Depth interpretation:** polygon plane angle relative to the flat image should communicate perceived depth: people and shell foreground, trees middle ground, ocean and sky background. The current guides assign normalized depth values 0.88, 0.48, and 0.12, respectively. The prototype projects depth by small horizontal and vertical offsets and shades from the resulting face normal. Masks, depth values, projection, and angle range remain provisional.
 - **Color and facet shading:** the screen does not display the source raster beneath the mesh or draw polygon outline strokes. Each facet uses the average of 16 source-color samples distributed across that triangle. Its clipped three-stop gradient keeps the midpoint stop at the original facet color. Smoothed source-luminance gradients orient the highlight toward the locally brighter side, while depth-based face tilt controls strength. Highlights raise value by 25–45% of remaining headroom with source hue and saturation unchanged. Shadows preserve source hue, increase saturation by 20–35% (clamped to the HSV maximum), and reduce value by 15–30%, depending on tilt. The gradient spans the facet's full projected extent; when the source has no clear local brightness direction, it falls back to an upper-left highlight. The stroke-only A3 export uses image-derived colors for polygon and selected contour paths.
 - **Rules governing abstraction and recognizability:** the artist will judge this through seed exploration; there is no requirement that every output remain legible as the original scene.
-- **Composition and distortion constraints:** analyze the whole painting. The current renderer uses a centered, no-crop contain fit with a white surround and a 5% safety margin for projection on both screen and A3; this is a reversible implementation default, not a final layout decision. Reflow remains an option for later artist review.
+- **Composition and distortion constraints:** analyze the whole painting. The current renderer uses a centered, no-crop contain fit with a 5% safety margin for projection on both screen and A3. The browser preview appears over a white stage; PNG export retains the required 2160 × 3840 dimensions but makes unused canvas pixels transparent. The A3 SVG has no background rectangle and contains only colored vector strokes.
 
 ### Randomness
 
@@ -117,9 +117,9 @@ These are established implementation requirements, not artistic choices:
 3. Represent composition geometry in normalized 0–1 coordinates, not fixed pixel coordinates.
 4. Keep geometry generation separate from screen rendering and SVG export.
 5. Canvas and SVG renderers use the same generated composition model; do not create unrelated drawing algorithms for the two outputs.
-6. Start with a simple, self-contained `index.html`. When the implementation grows to around 300 lines, consider splitting it into JavaScript files.
+6. Keep the runnable application in `src/`, beginning with `src/index.html`. Keep individual JavaScript modules under around 300 lines and split responsibilities by feature.
 7. Use browser-based HTML, Canvas, and plain JavaScript. Do not add frameworks, package managers, build steps, or CDN dependencies without explicit approval.
-8. Keep generative rules, geometry generation, rendering, and exporting clearly separated, even while the implementation is in one file.
+8. Keep generative rules, geometry generation, rendering, and exporting clearly separated across the `src/` modules.
 9. Keep PNG and SVG exports reproducible from the same seed and underlying composition. Define the animation frame/state used for export before implementing animated export.
 10. Keep the architecture straightforward and maintainable for iterative development with Codex.
 11. Adapt normalized composition deliberately between screen and paper aspect ratios. The full painting must remain represented without cropping. The current default is centered contain/letterbox; final approval or a reflow decision remains **TBD**.
@@ -147,9 +147,9 @@ These are established implementation requirements, not artistic choices:
 
 - Use deterministic seeded randomness; the same seed and parameters reproduce the same geometry.
 - **R:** generate a new seed and composition.
-- **Seed field:** enter an exact unsigned 32-bit seed (0–4,294,967,295); `R` advances to the next seed.
+- **Seed field:** enter an exact unsigned 32-bit seed (0–4,294,967,295); `R` advances to the next seed. The project opens at selected seed `48223`.
 - **Figure/background contrast:** slider from 0% (no mask-based density bias) to 100%. The previous strongest setting is now at 60%; values above 60% increase separation. Changing it retains the current seed and total point-count target.
-- **S:** save a full-resolution 2160 × 3840 PNG.
+- **S:** save a full-resolution 2160 × 3840 PNG with transparent pixels outside the rendered composition (no white matte).
 - **P:** export the corresponding composition as an A3 SVG.
 - PNG and SVG filenames include both seed and contrast; SVG root metadata also records contrast.
 - PNG and SVG exports must correspond to the same seed and composition. The export frame/state for an animated composition is **TBD** and must be clearly defined.
@@ -158,8 +158,8 @@ These are established implementation requirements, not artistic choices:
 ### Composition and Aspect Ratios
 
 - Define composition geometry in normalized 0–1 coordinates and preserve the full painting's content.
-- Screen ratio is **9:16** (0.5625); A3 portrait is **1:√2** (about 0.707). Preserve the full painting without cropping. The current implementation uses centered contain/letterbox for both outputs; final approval or reflow remains **TBD**.
-- The supplied source image is landscape. Its current fit uses a white surround; review this against the desired portrait presentation.
+- Screen ratio is **9:16** (0.5625); A3 portrait is **1:√2** (about 0.707). Preserve the full painting without cropping. The implementation uses a centered contain fit; unused screen PNG pixels are transparent while the preview stage remains white.
+- The supplied source image is landscape. Its full composition remains visible in the portrait outputs with contain fitting.
 - Use the same polygon edges for the plotter and assign source-derived stroke colors. How the physical pen palette approximates facet color and gradients is **TBD**.
 
 ## 7. Project File Structure
@@ -175,37 +175,32 @@ The current workspace and intended roles are:
 | `LMC 3402 — Lab 1 Building Generative Systems with an AI Partner.pdf` | Present | Assignment requirements and workflow. |
 | `Recommended File structure.pdf` | Present | Five-page architecture and documentation recommendations. |
 | `Original_BirthofVenus.jpg` | Present | Designated source image. |
-| `index.html` | Present | 4K Canvas and controls; loads the plain JavaScript files in order. |
+| `src/index.html` | Present | 4K Canvas and controls; opens with seed `48223` and 85% figure/background density contrast; loads the plain JavaScript files in order. |
 | `.gitignore` | Present | Ignores `.DS_Store`, `.env`, and `exports/`. |
-| `exports/` | Present, currently empty | Generated PNG and SVG outputs; ignored by Git. |
-| `rng.js` | Present | Seeded Mulberry32 RNG and deterministic next-seed control. |
-| `image-analysis.js` | Present | Downsampled source colors, thinned Sobel edge field, local contrast/edge importance, and smoothed luminance-gradient directions. |
-| `depth-zones.js` | Present | Coarse, editable foreground/middle-ground guide polygons. |
-| `triangulation.js` | Present | Local Bowyer–Watson Delaunay triangulation. |
-| `geometry.js` | Present | Seeded scaffold, form-weighted adaptive sampling, contour anchors, triangulation input, and shared mesh geometry. |
-| `contours.js` | Present | Hysteresis contour tracing, path simplification, and capped contour anchor sampling. |
-| `primary-forms.js` | Present | Editable whole-image masks for primary figures and shell, used to prioritize mesh density. |
-| `renderer.js` | Present | Image-sampled color facet fills, projection, source-luminance-oriented gradients with depth-responsive HSV value shifts, and no screen outline strokes. |
-| `svg-export.js` | Present | A3 SVG made from colored strokes for shared mesh edges and detected contour paths. |
-| `app.js` | Present | Exact seed input, next-seed control, figure/background contrast slider, exports, HUD, and FPS readout. |
+| `exports/` | Present, currently empty | Destination for generated PNG and SVG outputs; ignored by Git. |
+| `src/rng.js` | Present | Seeded Mulberry32 RNG and deterministic next-seed control. |
+| `src/image-analysis.js` | Present | Downsampled source colors, thinned Sobel edge field, local contrast/edge importance, and smoothed luminance-gradient directions. |
+| `src/depth-zones.js` | Present | Coarse, editable foreground/middle-ground guide polygons. |
+| `src/triangulation.js` | Present | Local Bowyer–Watson Delaunay triangulation. |
+| `src/geometry.js` | Present | Seeded scaffold, form-weighted adaptive sampling, contour anchors, triangulation input, and shared mesh geometry. |
+| `src/contours.js` | Present | Hysteresis contour tracing, path simplification, and capped contour anchor sampling. |
+| `src/primary-forms.js` | Present | Editable whole-image masks for primary figures and shell, used to prioritize mesh density. |
+| `src/renderer.js` | Present | Image-sampled color facet fills, projection, source-luminance-oriented gradients with depth-responsive HSV value shifts, and transparent unused canvas. |
+| `src/svg-export.js` | Present | A3 SVG made from colored strokes for shared mesh edges and detected contour paths. |
+| `src/app.js` | Present | Exact seed input, next-seed control, figure/background contrast slider, exports, HUD, and FPS readout. |
 
-The workspace is not currently initialized as a Git repository. The current JavaScript files are all under 300 lines. The application remains dependency-free and can be opened without a build step.
+The project is a Git repository with commit history. All runnable implementation files are grouped in `src/`; JavaScript modules remain under 300 lines. The application remains dependency-free and can be opened without a build step.
 
 ## 8. Seed Log
 
-No composition has been evaluated or selected yet. Add an entry only when the artist identifies a seed as worth keeping or evaluating; do not invent evaluations.
-
-The scaffold starts with seed `48213` as a reproducible preview default. It has not been artist-evaluated and is not a curated Seed Log entry.
+The artist selected seed `48223` at 85% figure/background density contrast as the preferred submission composition. Its reported mesh has 296 points and 564 facets. The scaffold now opens with these values.
 
 | Seed | Relevant parameters | Visual observations | Successful characteristics | Unsuccessful characteristics | Keep or reject |
 |---|---|---|---|---|---|
-| 48223 | 296 point count, 564 facets | Not too condensed in figures, background facets are flatter | — | — | — |
-| 48243 | 447 point count, 866 facets, 89% in form zones | Condensed enough, can visually distinguish background from figures because background facets are flatter | — | — | — |
+| 48223 | 85% figure/background density contrast; 296 points; 564 facets | Artist's preferred composition for final submission | Artist selected this version as the favorite | — | Keep for final submission |
+| 48243 | 447 points; 866 facets; 89% in form zones | Earlier comparison seed; artist observed stronger figure/background distinction and flatter background facets | — | — | Alternate |
 
-
-### Seed exploration guidance (proposal)
-
-A seed reproduces a whole composition; it is not one seed per variable. To study figure/background contrast, hold the seed fixed and compare slider settings, then compare multiple seeds at each setting. A manageable first study would be three contrast levels (for example, 25%, 60%, and 100%) crossed with three seed values (nine compositions), reusing the same seeds at each level. The seed also selects overall target point count, so the same seed keeps that target consistent across contrast settings. These are suggested comparisons, not generated or evaluated compositions.
+The selected submission state is seed `48223`, 85% figure/background density contrast, 296 points, and 564 facets. Further seed exploration is optional; do not replace this curated state without the artist's decision.
 
 ## 9. Development Milestones
 
@@ -215,14 +210,14 @@ A seed reproduces a whole composition; it is not one seed per variable. To study
 - [ ] **M4 — Paper:** Adapt the composition to A3 stroke-only SVG and test plotting feasibility.
 - [ ] **M5 — Final:** Evaluate outputs, curate seeds, and prepare the project presentation.
 
-Initial M1/M2 code is present, but the browser render, exports, reproducibility, performance, and plotter behavior have not been verified. Keep milestones unchecked until those checks and the artist's visual review are complete.
+The artist has curated a preferred seed for M5. Milestones remain unchecked because the final browser render, transparent PNG, matching A3 SVG, reproducibility, performance, and plotter behavior still need verification. Generate and inspect the submission files before treating the project as complete.
 
 ### Final presentation requirements from the assignment
 
-- Submit a screenshot of `index.html` running with the HUD visible.
-- Submit a screenshot of the project file tree showing `index.html`, the completed `context.md`, and `.gitignore`.
+- Submit a screenshot of `src/index.html` running with the HUD visible.
+- Submit a screenshot of the project file tree showing `src/index.html`, the completed `context.md`, and `.gitignore`.
 - Submit a screenshot of `git log --oneline` showing at least one commit.
-- Submit a PNG and its matching SVG from the same seed, with the seed in both filenames.
+- Submit a 2160 × 3840 transparent PNG and its matching A3 SVG from seed `48223` at 85% contrast, with the seed in both filenames.
 - The handout's submission due date is shown as `[date]`; no due date is specified there.
 
 ## 10. Open Artistic and Technical Decisions
