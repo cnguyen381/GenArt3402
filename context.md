@@ -8,7 +8,7 @@ This is the living source of truth for the project's artistic intent, system rul
 - **Artist intent:** Preserve more of the painting's original structure while letting viewers perceive it in a new spatial way. Tilt-responsive HSV gradients should make polygon planes read as dimensional while retaining sampled facet colors at their midpoints; shadows may use modestly increased saturation instead of relying mainly on lower brightness.
 - **Source artwork:** Sandro Botticelli, *The Birth of Venus*. The project source file is [`Original_BirthofVenus.jpg`](Original_BirthofVenus.jpg), 4683 × 2912 pixels (landscape). Analyze the whole painting; cropping out source regions is not part of the direction. The current implementation uses centered contain fitting in the portrait outputs; final visual approval remains pending.
 - **Inspiration:** Quayola's *Strata*, *Iconographies*, and *Topologies*, especially the investigation of historical imagery through computational abstraction. This project is original and does not aim to reproduce Quayola's works or claim to use his exact methods.
-- **Outputs:** A vertical 2160 × 3840 screen composition, a matching full-color screen SVG with filled gradient facets, and a corresponding A3 portrait (297 × 420 mm) stroke-only SVG for pen plotting.
+- **Outputs:** A vertical 2160 × 3840 screen composition, a matching full-color screen SVG with filled gradient facets, a corresponding A3 portrait (297 × 420 mm) stroke-only SVG for pen plotting, and an optional tightly cropped transparent PNG containing only the artwork.
 - **Technology:** Browser-based HTML, Canvas, and plain JavaScript, without unnecessary dependencies or build tools.
 - **Final-submission direction:** Seed `48223` at 85% figure/background density contrast is the artist's selected composition. The reported mesh has 296 points and 564 facets. The browser opens to these settings. The final PNG, full-color screen SVG, A3 plotter SVG, and required screenshots have not yet been generated; the artist performs final verification of every output.
 
@@ -130,7 +130,7 @@ These are established implementation requirements, not artistic choices:
 
 - Portrait canvas: **2160 × 3840 pixels**, aspect ratio **9:16**.
 - Scale to fit the browser without stretching.
-- Export both a transparent PNG and a filled, gradient-shaded screen SVG at 2160 × 3840 from the same composition geometry.
+- Export a transparent PNG and a filled, gradient-shaded screen SVG at 2160 × 3840 from the same composition geometry. A separate optional artwork-only PNG crops to the nontransparent artwork bounds; its dimensions follow the visible artwork and are not constrained to 2160 × 3840.
 - Support color. Animation remains an eventual assignment requirement, but its behavior and implementation are deferred for now.
 - Use `requestAnimationFrame` with a 60 FPS target and display an FPS readout.
 - Display the current seed in a small HUD.
@@ -151,6 +151,7 @@ These are established implementation requirements, not artistic choices:
 - **Seed field:** enter an exact unsigned 32-bit seed (0–4,294,967,295); `R` advances to the next seed. The project opens at selected seed `48223`.
 - **Figure/background contrast:** slider from 0% (no mask-based density bias) to 100%. The previous strongest setting is now at 60%; values above 60% increase separation. Changing it retains the current seed and total point-count target.
 - **S:** save a full-resolution 2160 × 3840 PNG with transparent pixels outside the rendered composition (no white matte).
+- **Artwork · Transparent PNG:** save a separate PNG cropped to the nontransparent artwork bounds, with no white background or surrounding transparent canvas margins. This supplemental export is intentionally not 2160 × 3840; the assignment-sized `S` PNG remains available.
 - **V:** save a full-color 2160 × 3840 SVG of the filled, gradient-shaded screen facets. It uses the same mesh and facet-gradient calculation as the Canvas renderer; it has no white background or polygon outlines.
 - **P:** export the separate A3 plotter SVG, made from colored strokes only.
 - Export filenames include both seed and contrast. The screen SVG metadata records seed, contrast, point count, and facet count; the A3 SVG records seed and contrast.
@@ -177,7 +178,7 @@ The current workspace and intended roles are:
 | `LMC 3402 — Lab 1 Building Generative Systems with an AI Partner.pdf` | Present | Assignment requirements and workflow. |
 | `Recommended File structure.pdf` | Present | Five-page architecture and documentation recommendations. |
 | `Original_BirthofVenus.jpg` | Present | Designated source image. |
-| `src/index.html` | Present | 4K Canvas and controls; opens with seed `48223` and 85% figure/background density contrast; loads the plain JavaScript files in order. |
+| `src/index.html` | Present | 4K Canvas and controls, including full-canvas and tightly cropped transparent PNG buttons; opens with seed `48223` and 85% figure/background density contrast; loads the plain JavaScript files in order. |
 | `.gitignore` | Present | Ignores `.DS_Store`, `.env`, and `exports/`. |
 | `exports/` | Present, currently empty | Destination for generated PNG and SVG outputs; ignored by Git. |
 | `src/rng.js` | Present | Seeded Mulberry32 RNG and deterministic next-seed control. |
@@ -190,7 +191,7 @@ The current workspace and intended roles are:
 | `src/renderer.js` | Present | Image-sampled color facet fills, projection, source-luminance-oriented gradients with depth-responsive HSV value shifts, and transparent unused canvas. |
 | `src/svg-export.js` | Present | A3 SVG made from colored strokes for shared mesh edges and detected contour paths. |
 | `src/screen-svg-export.js` | Present | Full-color 2160 × 3840 SVG with the same filled facets and gradients as the screen renderer. |
-| `src/app.js` | Present | Exact seed input, next-seed control, figure/background contrast slider, exports, HUD, and FPS readout. |
+| `src/app.js` | Present | Exact seed input, next-seed control, figure/background contrast slider, full-canvas and artwork-only transparent PNG exports, SVG exports, HUD, and FPS readout. |
 
 The project is a Git repository with commit history. All runnable implementation files are grouped in `src/`; JavaScript modules remain under 300 lines. The application remains dependency-free and can be opened without a build step.
 

@@ -74,6 +74,53 @@
     }, "image/png");
   }
 
+  function saveArtworkPng() {
+    if (!geometry) return;
+    let pixels;
+    try {
+      pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    } catch (error) {
+      setStatus(`Transparent PNG export failed: ${error.message}`);
+      return;
+    }
+
+    let left = canvas.width, top = canvas.height, right = -1, bottom = -1;
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        if (pixels.data[(y * canvas.width + x) * 4 + 3] === 0) continue;
+        left = Math.min(left, x);
+        top = Math.min(top, y);
+        right = Math.max(right, x);
+        bottom = Math.max(bottom, y);
+      }
+    }
+    if (right < left || bottom < top) {
+      setStatus("Transparent PNG export failed: no artwork pixels found.");
+      return;
+    }
+
+    const width = right - left + 1, height = bottom - top + 1;
+    const croppedCanvas = document.createElement("canvas");
+    croppedCanvas.width = width;
+    croppedCanvas.height = height;
+    croppedCanvas.getContext("2d").drawImage(
+      canvas, left, top, width, height, 0, 0, width, height
+    );
+    croppedCanvas.toBlob((blob) => {
+      if (!blob) {
+        setStatus("Transparent PNG export failed. Try opening the project through a local browser server.");
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `birth-of-venus-seed-${seed}-contrast-${Math.round(densityContrast * 100)}-artwork-only.png`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus(`Saved tightly cropped transparent PNG · ${width} × ${height} · seed ${seed}`);
+    }, "image/png");
+  }
+
   function saveSvg() {
     if (!geometry || !image.complete) return;
     const svg = ns.SvgExport.create(geometry, image, seed);
@@ -115,6 +162,7 @@
   seedInput.addEventListener("change", applySeedInput);
   contrastInput.addEventListener("input", updateContrast);
   document.getElementById("save-png").addEventListener("click", savePng);
+  document.getElementById("save-artwork-png").addEventListener("click", saveArtworkPng);
   document.getElementById("save-screen-svg").addEventListener("click", saveScreenSvg);
   document.getElementById("save-svg").addEventListener("click", saveSvg);
   window.addEventListener("keydown", handleKey);
