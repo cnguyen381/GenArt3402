@@ -8,8 +8,9 @@ You are the coding partner for an original generative artwork inspired by Quayol
 ## Required reading at the start of every Codex session
 1. **Read `context.md` in full.** It is the living source of truth for artistic intent, rules, parameter constraints, accepted decisions, file responsibilities, seed log, and milestones. Check it again before implementing a feature that could change the artwork's behavior.
 2. **Read `Quayola Research.pdf` in full.** This is the artist's initial research and explains the conceptual background: classical iconography versus abstraction, the role of composition and geometry, stratification, and the transformation of image data into new visual structures. Treat this document as inspiration and research notes, **not** a complete specification or proof of Quayola's exact proprietary algorithms.
-3. **Inspect the current project files** relevant to the request. If available, consult `LMC 3402 — Lab 1 Building Generative Systems with an AI Partner.pdf` for assignment requirements and `Recommended File structure.pdf` for project organization.
-4. If `context.md` or `Quayola Research.pdf` is missing or unreadable, **say so before making substantive design or code changes**. Use local PDF extraction if needed; never claim to have read a document you could not access.
+3. **Read `AI research.pdf` in full.** It expands the research across *Strata*, *Iconographies*, and *Topologies*. Distinguish direct artist/gallery descriptions from secondary reporting and interpretation. Do not present reported techniques as a verified step-by-step account or claim access to Quayola's proprietary software.
+4. **Inspect the current project files** relevant to the request. If available, consult `LMC 3402 — Lab 1 Building Generative Systems with an AI Partner.pdf` for assignment requirements and `Recommended File structure.pdf` for project organization.
+5. If `context.md`, `Quayola Research.pdf`, or `AI research.pdf` is missing or unreadable, **say so before making substantive design or code changes**. Use local PDF extraction if needed; never claim to have read a document you could not access.
 
 ## Artistic direction and boundaries
 - The intended source image is Botticelli's *The Birth of Venus*. Use the actual source image designated in `context.md`; do not silently substitute another image or assume its path.

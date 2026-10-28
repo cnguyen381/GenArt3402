@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Birth of Venus — Generative Study</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #e8e6e0; color: #252722; }
+    .app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 1rem; border-bottom: 1px solid #cbc9c2; background: #f7f6f2; }
+    .title { min-width: 12rem; }
+    h1 { margin: 0; font-size: 1rem; font-weight: 650; }
+    .subtitle { margin-top: .2rem; color: #64675f; font-size: .76rem; }
+    .controls { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .45rem; }
+    button { border: 1px solid #b9bbb2; border-radius: .35rem; background: #fff; color: #252722; padding: .48rem .68rem; font: inherit; font-size: .8rem; cursor: pointer; }
+    button:hover { background: #efeee8; }
+    button:focus-visible { outline: 2px solid #415d70; outline-offset: 2px; }
+    .readout { padding: .25rem .45rem; color: #4c504a; font-size: .75rem; white-space: nowrap; }
+    main { min-height: 0; display: grid; place-items: center; padding: .75rem; }
+    .stage { position: relative; max-width: 100%; max-height: 100%; height: calc(100vh - 5.4rem); aspect-ratio: 9 / 16; box-shadow: 0 3px 18px #17191424; background: #fff; }
+    canvas { display: block; width: 100%; height: 100%; background: #fff; }
+    .status { position: absolute; inset: auto .55rem .5rem; padding: .3rem .45rem; border-radius: .2rem; background: #ffffffd9; color: #55584f; font-size: .68rem; pointer-events: none; }
+    @media (max-width: 760px) {
+      header { align-items: flex-start; flex-direction: column; }
+      .controls { justify-content: flex-start; }
+      .stage { height: calc(100vh - 9rem); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>Birth of Venus · Mesh Study</h1>
+        <div class="subtitle">Full painting · static study · animation deferred</div>
+      </div>
+      <div class="controls" aria-label="Artwork controls">
+        <button id="new-seed" type="button" title="Generate a new seeded mesh (R)">R · New seed</button>
+        <button id="save-png" type="button" title="Save 2160 × 3840 PNG (S)">S · Save PNG</button>
+        <button id="save-svg" type="button" title="Export stroke-only A3 SVG (P)">P · Export A3 SVG</button>
+        <span class="readout" id="seed-readout">Seed: —</span>
+        <span class="readout" id="mesh-readout">Mesh: —</span>
+        <span class="readout" id="fps-readout">FPS: —</span>
+      </div>
+    </header>
+    <main>
+      <div class="stage">
+        <canvas id="art" width="2160" height="3840" aria-label="Generative polygon mesh study of The Birth of Venus"></canvas>
+        <div class="status" id="status">Loading source image…</div>
+      </div>
+    </main>
+  </div>
+  <script defer src="rng.js"></script>
+  <script defer src="image-analysis.js"></script>
+  <script defer src="contours.js"></script>
+  <script defer src="depth-zones.js"></script>
+  <script defer src="triangulation.js"></script>
+  <script defer src="geometry.js"></script>
+  <script defer src="renderer.js"></script>
+  <script defer src="svg-export.js"></script>
+  <script defer src="app.js"></script>
+</body>
+</html>
